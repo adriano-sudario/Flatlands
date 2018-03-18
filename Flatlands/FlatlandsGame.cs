@@ -23,6 +23,7 @@ namespace Flatlands
         SpriteBatch spriteBatch;
 
         MatchScene match;
+        Settings settings;
 
         public static GraphicsDevice SuperGraphics;
 
@@ -32,9 +33,15 @@ namespace Flatlands
         public static int ScreenWidth { get { return screenWidth; } }
         public static int ScreenHeight { get { return screenHeight; } }
 
+        public readonly static float VirtualWidth = 800;
+        public readonly static float VirtualHeight = 480;
+
+        Matrix matrix;
+
         public FlatlandsGame()
         {
             graphics = new GraphicsDeviceManager(this);
+            settings = new Settings() { IsFullScreen = true, PlaySound = true };
             Content.RootDirectory = "Content";
         }
 
@@ -46,12 +53,29 @@ namespace Flatlands
         /// </summary>
         protected override void Initialize()
         {
-            base.Initialize();
+            if (settings.IsFullScreen)
+            {
+                screenWidth = GraphicsDevice.DisplayMode.Width;
+                screenHeight = GraphicsDevice.DisplayMode.Height;
 
-            //800 px - 50 tiles (16px tiles)
-            screenWidth = GraphicsDevice.Viewport.Width;
-            //480 px - 30 tiles (16px tiles)
-            screenHeight = GraphicsDevice.Viewport.Height;
+                graphics.PreferredBackBufferWidth = ScreenWidth;
+                graphics.PreferredBackBufferHeight = ScreenHeight;
+
+                graphics.ApplyChanges();
+
+                var scaleX = ScreenWidth / VirtualWidth;
+                var scaleY = ScreenHeight / VirtualHeight;
+                matrix = Matrix.CreateScale(scaleX, scaleY, 1.0f);
+            }
+            else
+            {
+                //800 px - 50 tiles (16px tiles)
+                screenWidth = GraphicsDevice.Viewport.Width;
+                //480 px - 30 tiles (16px tiles)
+                screenHeight = GraphicsDevice.Viewport.Height;
+            }
+
+            base.Initialize();
         }
 
         /// <summary>
@@ -68,8 +92,11 @@ namespace Flatlands
             Global.EntityAtlas = Content.Load<Texture2D>("Graphics\\entity_atlas");
             Global.MapAtlas = Content.Load<Texture2D>("Graphics\\gonzalo_map");
 
-            SoundEffect soundTrack = Content.Load<SoundEffect>("SoundTracks\\chaesd_by_teh_rievr");
-            SoundTrack.Load(soundTrack, play: true);
+            if (settings.PlaySound)
+            {
+                SoundEffect soundTrack = Content.Load<SoundEffect>("SoundTracks\\chaesd_by_teh_rievr");
+                SoundTrack.Load(soundTrack, play: true);
+            }
 
             match = GetMatch();
         }
@@ -129,7 +156,11 @@ namespace Flatlands
         {
             GraphicsDevice.Clear(Color.White);
 
-            spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+            if (settings.IsFullScreen)
+                spriteBatch.Begin(transformMatrix: matrix);
+            else
+                spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+
             match.Draw(spriteBatch);
             spriteBatch.End();
 

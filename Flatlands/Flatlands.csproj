@@ -77,6 +77,7 @@
     <Compile Include="Scenes\MatchScene.cs" />
     <Compile Include="Scenes\Scene.cs" />
     <Compile Include="Scenes\SceneManager.cs" />
+    <Compile Include="Settings.cs" />
     <Compile Include="Sounds\SoundTrack.cs" />
   </ItemGroup>
   <ItemGroup>
